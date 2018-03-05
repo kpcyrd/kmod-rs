@@ -2,8 +2,11 @@ use kmod_sys;
 
 use std::ptr;
 use std::mem;
+use std::ffi::CString;
 
-use modules::ModuleIterator;
+use modules::{Module, ModuleIterator};
+use errors::Result;
+
 
 pub struct Context {
     ctx: *mut kmod_sys::kmod_ctx,
@@ -36,4 +39,22 @@ impl Context {
         ModuleIterator::new(list)
     }
 
+    #[inline]
+    pub fn module_new_from_path(&self, filename: &str) -> Result<Module> {
+        let mut module = Box::into_raw(Box::new(unsafe { mem::uninitialized() })) as *mut kmod_sys::kmod_module;
+
+        let filename = CString::new(filename)?;
+        unsafe { kmod_sys::kmod_module_new_from_path(self.ctx, filename.as_ptr(), &mut module) };
+        trace!("kmod_module_new_from_path: {:?}", module);
+        Ok(Module::new(module))
+    }
+
+    pub fn module_new_from_name(&self, name: &str) -> Result<Module> {
+        let mut module = Box::into_raw(Box::new(unsafe { mem::uninitialized() })) as *mut kmod_sys::kmod_module;
+
+        let name = CString::new(name)?;
+        unsafe { kmod_sys::kmod_module_new_from_name(self.ctx, name.as_ptr(), &mut module) };
+        trace!("kmod_module_new_from_name: {:?}", module);
+        Ok(Module::new(module))
+    }
 }
