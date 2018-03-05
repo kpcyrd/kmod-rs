@@ -1,6 +1,9 @@
 use kmod_sys::{self, kmod_list, kmod_module};
+use reduce::Reduce;
+use errno;
 
-use std::ffi::CStr;
+use std::ffi::{CStr, CString};
+use errors::{Result, ErrorKind};
 
 
 pub struct Module {
@@ -16,7 +19,7 @@ impl Drop for Module {
 
 impl Module {
     #[inline]
-    fn new(module: *mut kmod_module) -> Module {
+    pub(crate) fn new(module: *mut kmod_module) -> Module {
         trace!("creating kmod_module: {:?}", module);
         Module {
             inner: module,
@@ -44,6 +47,32 @@ impl Module {
     pub fn holders(&self) -> ModuleIterator {
         let holders = unsafe { kmod_sys::kmod_module_get_holders(self.inner) };
         ModuleIterator::new(holders)
+    }
+
+    #[inline]
+    pub fn insert_module(&self, flags: u32, opts: Vec<String>) -> Result<()> {
+        let opts = opts.into_iter()
+            .reduce(|a, b| a + " " + &b)
+            .unwrap_or(String::new());
+
+        let opts = CString::new(opts)?;
+
+        let ret = unsafe { kmod_sys::kmod_module_insert_module(self.inner, flags, opts.as_ptr()) };
+        if ret < 0 {
+            Err(ErrorKind::Errno(errno::errno()).into())
+        } else {
+            Ok(())
+        }
+    }
+
+    #[inline]
+    pub fn remove_module(&self, flags: u32) -> Result<()> {
+        let ret = unsafe { kmod_sys::kmod_module_remove_module(self.inner, flags) };
+        if ret < 0 {
+            Err(ErrorKind::Errno(errno::errno()).into())
+        } else {
+            Ok(())
+        }
     }
 }
 

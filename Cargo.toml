@@ -16,6 +16,8 @@ travis-ci = { repository = "kpcyrd/kmod-rs" }
 [dependencies]
 error-chain = "0.11"
 log = "0.4"
+errno = "0.2"
+reduce = "0.1"
 kmod-sys = { version = "0.1.0", path = "kmod-sys" }
 
 [dev-dependencies]

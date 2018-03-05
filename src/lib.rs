@@ -1,9 +1,23 @@
 #[macro_use] extern crate error_chain;
 #[macro_use] extern crate log;
+extern crate errno;
+extern crate reduce;
 extern crate kmod_sys;
 
 mod errors {
+    use std;
+    use errno::Errno;
+
     error_chain! {
+        errors {
+            Errno(err: Errno) {
+                description("got error")
+                display("{}", err)
+            }
+        }
+        foreign_links {
+            NulError(std::ffi::NulError);
+        }
     }
 }
 pub use errors::{Result, Error, ErrorKind};
