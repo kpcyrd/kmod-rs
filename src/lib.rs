@@ -1,3 +1,27 @@
+//! Bindings to libkmod to manage linux kernel modules.
+//!
+//! # Example
+//! ```
+//! extern crate kmod;
+//!
+//! fn main() {
+//!     // create a new kmod context
+//!     let ctx = kmod::Context::new();
+//!
+//!     // get a kmod_list of all loaded modules
+//!     for module in ctx.modules_loaded() {
+//!         let name = module.name();
+//!         let refcount = module.refcount();
+//!         let size = module.size();
+//!
+//!         let holders: Vec<_> = module.holders()
+//!             .map(|x| x.name())
+//!             .collect();
+//!
+//!         println!("{:<19} {:8}  {} {:?}", name, size, refcount, holders);
+//!     }
+//! }
+//! ```
 #[macro_use] extern crate error_chain;
 #[macro_use] extern crate log;
 extern crate errno;
