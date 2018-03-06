@@ -61,6 +61,14 @@ impl Module {
         ModuleIterator::new(dependencies)
     }
 
+    /// Get module path
+    #[inline]
+    pub fn path(&self) -> String {
+        let path = unsafe { kmod_sys::kmod_module_get_path(self.inner) };
+        let path = unsafe { CStr::from_ptr(path) };
+        path.to_string_lossy().into_owned()
+    }
+
     /// Insert the module into the kernel
     #[inline]
     pub fn insert_module(&self, flags: u32, opts: Vec<String>) -> Result<()> {
