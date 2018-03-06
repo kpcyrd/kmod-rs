@@ -3,20 +3,34 @@ extern crate bindgen;
 use std::env;
 use std::path::PathBuf;
 
-fn main() {
-    // Tell cargo to tell rustc to link the system bzip2
-    // shared library.
-    println!("cargo:rustc-link-lib=kmod");
-
+fn genbindings(path: &str) -> Result<bindgen::Bindings, ()> {
     // The bindgen::Builder is the main entry point
     // to bindgen, and lets you build up options for
     // the resulting bindings.
-    let bindings = bindgen::Builder::default()
+    bindgen::Builder::default()
         // The input header we would like to generate
         // bindings for.
-        .header("wrapper.h")
+        .header(path)
         // Finish the builder and generate the bindings.
         .generate()
+}
+
+fn try_genbindings() -> Option<bindgen::Bindings> {
+    for header in &["wrapper.h", "fallback.h"] {
+        if let Ok(bindings) = genbindings(header) {
+            return Some(bindings);
+        }
+    }
+
+    None
+}
+
+fn main() {
+    // Tell cargo to tell rustc to link the system kmod
+    // shared library.
+    println!("cargo:rustc-link-lib=kmod");
+
+    let bindings = try_genbindings()
         // Unwrap the Result and panic on failure.
         .expect("Unable to generate bindings");
 
