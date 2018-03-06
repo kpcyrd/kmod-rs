@@ -3,7 +3,7 @@ use errno;
 
 use std::ptr;
 use std::mem;
-use std::ffi::{CStr, CString};
+use std::ffi::CString;
 
 use modules::{Module, ModuleIterator};
 use errors::{Result, ErrorKind};
@@ -108,6 +108,7 @@ impl Context {
         }
     }
 
+    /*
     /// Get the directory where kernel modules are stored
     ///
     /// ```
@@ -119,4 +120,5 @@ impl Context {
         let dirname = unsafe { CStr::from_ptr(dirname) };
         dirname.to_string_lossy().into_owned()
     }
+    */
 }
