@@ -54,6 +54,13 @@ impl Module {
         ModuleIterator::new(holders)
     }
 
+    /// Get this modules dependencies
+    #[inline]
+    pub fn dependencies(&self) -> ModuleIterator {
+        let dependencies = unsafe { kmod_sys::kmod_module_get_dependencies(self.inner) };
+        ModuleIterator::new(dependencies)
+    }
+
     /// Insert the module into the kernel
     #[inline]
     pub fn insert_module(&self, flags: u32, opts: Vec<String>) -> Result<()> {
