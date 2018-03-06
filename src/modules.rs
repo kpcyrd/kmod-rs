@@ -6,6 +6,7 @@ use std::ffi::{CStr, CString};
 use errors::{Result, ErrorKind};
 
 
+/// Wrapper around a kmod_module
 pub struct Module {
     inner: *mut kmod_module,
 }
@@ -26,6 +27,7 @@ impl Module {
         }
     }
 
+    /// Get the name of the module
     #[inline]
     pub fn name(&self) -> String {
         let name = unsafe { kmod_sys::kmod_module_get_name(self.inner) };
@@ -33,22 +35,26 @@ impl Module {
         name.to_string_lossy().into_owned()
     }
 
+    /// Get the size of the module
     #[inline]
     pub fn size(&self) -> i64 {
         unsafe { kmod_sys::kmod_module_get_size(self.inner) }
     }
 
+    /// Get the number of references to this module
     #[inline]
     pub fn refcount(&self) -> i32 {
         unsafe { kmod_sys::kmod_module_get_refcnt(self.inner) }
     }
 
+    /// Iterate over the modules depending on this module
     #[inline]
     pub fn holders(&self) -> ModuleIterator {
         let holders = unsafe { kmod_sys::kmod_module_get_holders(self.inner) };
         ModuleIterator::new(holders)
     }
 
+    /// Insert the module into the kernel
     #[inline]
     pub fn insert_module(&self, flags: u32, opts: Vec<String>) -> Result<()> {
         let opts = opts.into_iter()
@@ -65,6 +71,7 @@ impl Module {
         }
     }
 
+    /// Remove the module from the kernel
     #[inline]
     pub fn remove_module(&self, flags: u32) -> Result<()> {
         let ret = unsafe { kmod_sys::kmod_module_remove_module(self.inner, flags) };
@@ -77,6 +84,7 @@ impl Module {
 }
 
 
+/// Iterator over a kmod_list of modules
 pub struct ModuleIterator {
     list: *mut kmod_list,
     iter: *mut kmod_list,

@@ -4,9 +4,9 @@ extern crate env_logger;
 fn main() {
     env_logger::init();
 
-    let ctx = kmod::Context::new();
+    let ctx = kmod::Context::new().expect("kmod ctx failed");
 
-    for module in ctx.modules_loaded() {
+    for module in ctx.modules_loaded().unwrap() {
         let name = module.name();
         let refcount = module.refcount();
         let size = module.size();

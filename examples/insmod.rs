@@ -7,7 +7,7 @@ use std::env;
 fn main() {
     env_logger::init();
 
-    let ctx = kmod::Context::new();
+    let ctx = kmod::Context::new().expect("kmod ctx failed");
 
     let mut args: Vec<String> = env::args().skip(1).collect();
     if args.len() < 1 {

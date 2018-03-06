@@ -8,7 +8,7 @@ use std::env;
 fn main() {
     env_logger::init();
 
-    let ctx = kmod::Context::new();
+    let ctx = kmod::Context::new().expect("kmod ctx failed");
 
     let filename = env::args().nth(1).expect("missing argument");
 
