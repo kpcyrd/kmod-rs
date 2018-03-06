@@ -12,7 +12,7 @@ use errors::{Result, ErrorKind};
 /// The kmod context
 ///
 /// ```
-/// let ctx = kmod::Context::new();
+/// let ctx = kmod::Context::new().unwrap();
 /// ```
 pub struct Context {
     ctx: *mut kmod_sys::kmod_ctx,
@@ -29,39 +29,48 @@ impl Context {
     /// Create a new kmod context.
     ///
     /// ```
-    /// let ctx = kmod::Context::new();
+    /// let ctx = kmod::Context::new().unwrap();
     /// ```
     #[inline]
-    pub fn new() -> Context {
+    pub fn new() -> Result<Context> {
         let ctx = unsafe { kmod_sys::kmod_new(ptr::null(), ptr::null()) };
-        trace!("creating kmod: {:?}", ctx);
-        Context {
-            ctx,
+
+        if ctx.is_null() {
+            Err("kmod_new failed".into())
+        } else {
+            trace!("creating kmod: {:?}", ctx);
+            Ok(Context {
+                ctx,
+            })
         }
     }
 
     /// Get an iterator of all loaded modules.
     ///
     /// ```
-    /// let ctx = kmod::Context::new();
-    /// for module in ctx.modules_loaded() {
+    /// let ctx = kmod::Context::new().unwrap();
+    /// for module in ctx.modules_loaded().unwrap() {
     ///     // ...
     /// }
     /// ```
     #[inline]
-    pub fn modules_loaded(&self) -> ModuleIterator {
+    pub fn modules_loaded(&self) -> Result<ModuleIterator> {
         let mut list = Box::into_raw(Box::new(unsafe { mem::uninitialized() })) as *mut kmod_sys::kmod_list;
 
         let ret = unsafe { kmod_sys::kmod_module_new_from_loaded(self.ctx, &mut list) };
-        trace!("kmod_module_new_from_loaded: {:?}", ret);
 
-        ModuleIterator::new(list)
+        if ret < 0 {
+            Err(ErrorKind::Errno(errno::errno()).into())
+        } else {
+            trace!("kmod_module_new_from_loaded: {:?}", list);
+            Ok(ModuleIterator::new(list))
+        }
     }
 
     /// Create a module struct by path.
     ///
     /// ```
-    /// let ctx = kmod::Context::new();
+    /// let ctx = kmod::Context::new().unwrap();
     /// let module = ctx.module_new_from_path("foo.ko");
     /// ```
     #[inline]
@@ -82,7 +91,7 @@ impl Context {
     /// Create a module struct by name.
     ///
     /// ```
-    /// let ctx = kmod::Context::new();
+    /// let ctx = kmod::Context::new().unwrap();
     /// let module = ctx.module_new_from_name("tun").unwrap();
     /// ```
     pub fn module_new_from_name(&self, name: &str) -> Result<Module> {

@@ -6,10 +6,10 @@
 //!
 //! fn main() {
 //!     // create a new kmod context
-//!     let ctx = kmod::Context::new();
+//!     let ctx = kmod::Context::new().unwrap();
 //!
 //!     // get a kmod_list of all loaded modules
-//!     for module in ctx.modules_loaded() {
+//!     for module in ctx.modules_loaded().unwrap() {
 //!         let name = module.name();
 //!         let refcount = module.refcount();
 //!         let size = module.size();
@@ -58,9 +58,9 @@ mod tests {
 
     #[test]
     fn lsmod() {
-        let ctx = Context::new();
+        let ctx = Context::new().unwrap();
 
-        for module in ctx.modules_loaded() {
+        for module in ctx.modules_loaded().unwrap() {
             let name = module.name();
             let refcount = module.refcount();
             let size = module.size();
