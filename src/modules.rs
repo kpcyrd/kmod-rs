@@ -54,6 +54,30 @@ impl Module {
         ModuleIterator::new(holders)
     }
 
+    /// Get this modules dependencies
+    #[inline]
+    pub fn dependencies(&self) -> ModuleIterator {
+        let dependencies = unsafe { kmod_sys::kmod_module_get_dependencies(self.inner) };
+        ModuleIterator::new(dependencies)
+    }
+
+    /// Get module path
+    #[inline]
+    pub fn path(&self) -> String {
+        let path = unsafe { kmod_sys::kmod_module_get_path(self.inner) };
+        let path = unsafe { CStr::from_ptr(path) };
+        path.to_string_lossy().into_owned()
+    }
+
+
+    /// Get module options
+    #[inline]
+    pub fn options(&self) -> String {
+        let options = unsafe { kmod_sys::kmod_module_get_options(self.inner) };
+        let options = unsafe { CStr::from_ptr(options) };
+        options.to_string_lossy().into_owned()
+    }
+
     /// Insert the module into the kernel
     #[inline]
     pub fn insert_module(&self, flags: u32, opts: Vec<String>) -> Result<()> {

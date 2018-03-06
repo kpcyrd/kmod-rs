@@ -107,4 +107,18 @@ impl Context {
             Ok(Module::new(module))
         }
     }
+
+    /*
+    /// Get the directory where kernel modules are stored
+    ///
+    /// ```
+    /// let ctx = kmod::Context::new().unwrap();
+    /// let dirname = ctx.dirname();
+    /// ```
+    pub fn dirname(&self) -> String {
+        let dirname = unsafe { kmod_sys::kmod_get_dirname(self.ctx) };
+        let dirname = unsafe { CStr::from_ptr(dirname) };
+        dirname.to_string_lossy().into_owned()
+    }
+    */
 }
