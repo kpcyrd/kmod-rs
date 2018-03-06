@@ -9,6 +9,12 @@
 
 Bindings to libkmod to manage linux kernel modules.
 
+```
+# Cargo.toml
+[dependencies]
+kmod = "0.2"
+```
+
 ## License
 
 MIT/Apache-2.0
