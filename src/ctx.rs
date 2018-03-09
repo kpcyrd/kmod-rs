@@ -1,8 +1,7 @@
 use kmod_sys;
 use errno;
 
-use std::ptr;
-use std::mem;
+use std::{fmt, mem, ptr};
 use std::ffi::CString;
 
 use modules::{Module, ModuleIterator};
@@ -121,4 +120,10 @@ impl Context {
         dirname.to_string_lossy().into_owned()
     }
     */
+}
+
+impl fmt::Debug for Context {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.pad("Context { .. }")
+    }
 }
