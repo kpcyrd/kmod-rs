@@ -3,6 +3,7 @@ use reduce::Reduce;
 use errno;
 
 use std::ffi::{CStr, CString};
+use std::fmt;
 use errors::{Result, ErrorKind};
 
 
@@ -107,6 +108,11 @@ impl Module {
     }
 }
 
+impl fmt::Debug for Module {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.pad("Module { .. }")
+    }
+}
 
 /// Iterator over a kmod_list of modules
 pub struct ModuleIterator {
@@ -146,3 +152,10 @@ impl Iterator for ModuleIterator {
         }
     }
 }
+
+impl fmt::Debug for ModuleIterator {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.pad("ModuleIterator { .. }")
+    }
+}
+
