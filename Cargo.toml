@@ -1,6 +1,6 @@
 [package]
 name = "kmod"
-version = "0.3.0"
+version = "0.3.1"
 description = "Bindings to libkmod to manage linux kernel modules"
 authors = ["kpcyrd <git@rxv.cc>"]
 license = "MIT/Apache-2.0"
