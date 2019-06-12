@@ -141,11 +141,12 @@ impl ModuleIterator {
 impl Iterator for ModuleIterator {
     type Item = Module;
 
+    #[inline]
     fn next(&mut self) -> Option<Self::Item> {
-        self.iter = unsafe { kmod_sys::kmod_list_next(self.list, self.iter) };
         trace!("kmod_list->next: {:?}", self.iter);
         if !self.iter.is_null() {
             let module = unsafe { kmod_sys::kmod_module_get_module(self.iter) };
+            self.iter = unsafe { kmod_sys::kmod_list_next(self.list, self.iter) };
             Some(Module::new(module))
         } else {
             None
