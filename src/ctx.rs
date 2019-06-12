@@ -2,7 +2,7 @@ use kmod_sys;
 use errno;
 
 use std::{fmt, mem, ptr};
-use std::ffi::CString;
+use std::ffi::{CString, OsStr};
 
 use modules::{Module, ModuleIterator};
 use errors::{Result, ErrorKind};
@@ -62,6 +62,21 @@ impl Context {
             Err(ErrorKind::Errno(errno::errno()).into())
         } else {
             trace!("kmod_module_new_from_loaded: {:?}", list);
+            Ok(ModuleIterator::new(list))
+        }
+    }
+
+    #[inline]
+    pub fn module_new_from_lookup(&self, alias: &OsStr) -> Result<ModuleIterator> {
+        use std::os::unix::ffi::OsStrExt;
+        let mut list = ptr::null::<kmod_sys::kmod_list>() as *mut kmod_sys::kmod_list;
+        let alias = CString::new(alias.as_bytes())?;
+        let ret = unsafe { kmod_sys::kmod_module_new_from_lookup(self.ctx, alias.as_ptr(), &mut list) };
+
+        if ret < 0 {
+            Err(ErrorKind::Errno(errno::errno()).into())
+        } else {
+            trace!("kmod_module_new_from_lookup: {:?}", list);
             Ok(ModuleIterator::new(list))
         }
     }
