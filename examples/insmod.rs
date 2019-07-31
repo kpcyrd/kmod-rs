@@ -17,5 +17,5 @@ fn main() {
 
     let module = ctx.module_new_from_path(&filename).expect("new_from_path failed");
     info!("got module: {:?}", module.name());
-    module.insert_module(0, args).expect("insert_module failed");
+    module.insert_module(0, &args.iter().map(|x| x.as_str()).collect::<Vec<_>>()).expect("insert_module failed");
 }
