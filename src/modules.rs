@@ -62,19 +62,17 @@ impl Module {
 
     /// Get module path
     #[inline]
-    pub fn path(&self) -> String {
-        let path = unsafe { kmod_sys::kmod_module_get_path(self.inner) };
-        let path = unsafe { CStr::from_ptr(path) };
-        path.to_string_lossy().into_owned()
+    pub fn path(&self) -> Option<&str> {
+        let path = unsafe { kmod_sys::kmod_module_get_path(self.inner).as_ref() };
+        Some(path.and_then(|ptr| unsafe { CStr::from_ptr(ptr) }.to_str().ok())?)
     }
 
 
     /// Get module options
     #[inline]
-    pub fn options(&self) -> String {
-        let options = unsafe { kmod_sys::kmod_module_get_options(self.inner) };
-        let options = unsafe { CStr::from_ptr(options) };
-        options.to_string_lossy().into_owned()
+    pub fn options(&self) -> Option<&str> {
+        let options = unsafe { kmod_sys::kmod_module_get_options(self.inner).as_ref() };
+        Some(options.and_then(|ptr| unsafe { CStr::from_ptr(ptr) }.to_str().ok())?)
     }
 
     /// Insert the module into the kernel
