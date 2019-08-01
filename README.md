@@ -12,7 +12,7 @@ Bindings to libkmod to manage linux kernel modules.
 ```
 # Cargo.toml
 [dependencies]
-kmod = "0.2"
+kmod = "0.4"
 ```
 
 To get started, see the [docs] and the examples/ folder.
@@ -31,7 +31,7 @@ fn main() {
         let size = module.size();
 
         let holders: Vec<_> = module.holders()
-                                .map(|x| x.name())
+                                .map(|x| x.name().to_owned())
                                 .collect();
 
         println!("{:<19} {:8}  {} {:?}", name, size, refcount, holders);
