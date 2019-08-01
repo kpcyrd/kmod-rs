@@ -12,7 +12,7 @@ fn main() {
         let size = module.size();
 
         let holders: Vec<_> = module.holders()
-                                .map(|x| x.name())
+                                .map(|x| x.name().to_owned())
                                 .collect();
 
         println!("{:<19} {:8}  {} {:?}", name, size, refcount, holders);

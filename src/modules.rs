@@ -28,10 +28,9 @@ impl Module {
 
     /// Get the name of the module
     #[inline]
-    pub fn name(&self) -> String {
-        let name = unsafe { kmod_sys::kmod_module_get_name(self.inner) };
-        let name = unsafe { CStr::from_ptr(name) };
-        name.to_string_lossy().into_owned()
+    pub fn name(&self) -> &str {
+        let name = unsafe { kmod_sys::kmod_module_get_name(self.inner).as_ref() };
+        name.and_then(|ptr| unsafe { CStr::from_ptr(ptr) }.to_str().ok()).unwrap()
     }
 
     /// Get the size of the module
