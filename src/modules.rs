@@ -1,11 +1,9 @@
 use kmod_sys::{self, kmod_list, kmod_module};
-use reduce::Reduce;
 use errno;
 
 use std::ffi::{CStr, CString};
 use std::fmt;
 use errors::{Result, ErrorKind};
-
 
 /// Wrapper around a kmod_module
 pub struct Module {
@@ -81,10 +79,8 @@ impl Module {
 
     /// Insert the module into the kernel
     #[inline]
-    pub fn insert_module(&self, flags: u32, opts: Vec<String>) -> Result<()> {
-        let opts = opts.into_iter()
-            .reduce(|a, b| a + " " + &b)
-            .unwrap_or(String::new());
+    pub fn insert_module(&self, flags: u32, opts: &[&str]) -> Result<()> {
+        let opts = opts.join(" ");
 
         let opts = CString::new(opts)?;
 
