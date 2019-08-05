@@ -1,6 +1,6 @@
-extern crate kmod;
-#[macro_use] extern crate log;
-extern crate env_logger;
+use kmod;
+use log::info;
+use env_logger;
 
 use std::env;
 

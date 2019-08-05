@@ -1,9 +1,11 @@
-use kmod_sys::{self, kmod_list, kmod_module};
-use errno;
-
 use std::ffi::{CStr, CString};
 use std::fmt;
-use errors::{Result, ErrorKind};
+
+use errno;
+use kmod_sys::{self, kmod_list, kmod_module};
+use log::trace;
+
+use crate::errors::{ErrorKind, Result};
 
 /// Wrapper around a kmod_module
 pub struct Module {
@@ -13,7 +15,7 @@ pub struct Module {
 impl Drop for Module {
     fn drop(&mut self) {
         trace!("dropping kmod_module: {:?}", self.inner);
-        unsafe { kmod_sys::kmod_module_unref(self.inner) };
+        let _ = unsafe { kmod_sys::kmod_module_unref(self.inner) };
     }
 }
 
@@ -102,7 +104,7 @@ impl Module {
 }
 
 impl fmt::Debug for Module {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.pad("Module { .. }")
     }
 }
@@ -116,7 +118,7 @@ pub struct ModuleIterator {
 impl Drop for ModuleIterator {
     fn drop(&mut self) {
         trace!("dropping kmod_list: {:?}", self.list);
-        unsafe { kmod_sys::kmod_module_unref_list(self.list) };
+        let _ = unsafe { kmod_sys::kmod_module_unref_list(self.list) };
     }
 }
 
@@ -148,7 +150,7 @@ impl Iterator for ModuleIterator {
 }
 
 impl fmt::Debug for ModuleIterator {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.pad("ModuleIterator { .. }")
     }
 }

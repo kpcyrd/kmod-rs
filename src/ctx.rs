@@ -1,12 +1,12 @@
-use kmod_sys;
-use errno;
-
-use std::{fmt, mem, ptr};
 use std::ffi::{CString, OsStr};
+use std::{fmt, ptr};
 
-use modules::{Module, ModuleIterator};
-use errors::{Result, ErrorKind};
+use errno;
+use kmod_sys;
+use log::trace;
 
+use crate::errors::{ErrorKind, Result};
+use crate::modules::{Module, ModuleIterator};
 
 /// The kmod context
 ///
@@ -20,7 +20,7 @@ pub struct Context {
 impl Drop for Context {
     fn drop(&mut self) {
         trace!("dropping kmod: {:?}", self.ctx);
-        unsafe { kmod_sys::kmod_unref(self.ctx) };
+        let _ = unsafe { kmod_sys::kmod_unref(self.ctx) };
     }
 }
 
@@ -54,8 +54,7 @@ impl Context {
     /// ```
     #[inline]
     pub fn modules_loaded(&self) -> Result<ModuleIterator> {
-        let mut list = Box::into_raw(Box::new(unsafe { mem::uninitialized() })) as *mut kmod_sys::kmod_list;
-
+        let mut list = ptr::null::<kmod_sys::kmod_list>() as *mut kmod_sys::kmod_list;
         let ret = unsafe { kmod_sys::kmod_module_new_from_loaded(self.ctx, &mut list) };
 
         if ret < 0 {
@@ -89,7 +88,7 @@ impl Context {
     /// ```
     #[inline]
     pub fn module_new_from_path(&self, filename: &str) -> Result<Module> {
-        let mut module = Box::into_raw(Box::new(unsafe { mem::uninitialized() })) as *mut kmod_sys::kmod_module;
+        let mut module = ptr::null::<kmod_sys::kmod_module>() as *mut kmod_sys::kmod_module;
 
         let filename = CString::new(filename)?;
         let ret = unsafe { kmod_sys::kmod_module_new_from_path(self.ctx, filename.as_ptr(), &mut module) };
@@ -109,7 +108,7 @@ impl Context {
     /// let module = ctx.module_new_from_name("tun").unwrap();
     /// ```
     pub fn module_new_from_name(&self, name: &str) -> Result<Module> {
-        let mut module = Box::into_raw(Box::new(unsafe { mem::uninitialized() })) as *mut kmod_sys::kmod_module;
+        let mut module = ptr::null::<kmod_sys::kmod_module>() as *mut kmod_sys::kmod_module;
 
         let name = CString::new(name)?;
         let ret = unsafe { kmod_sys::kmod_module_new_from_name(self.ctx, name.as_ptr(), &mut module) };
@@ -138,7 +137,7 @@ impl Context {
 }
 
 impl fmt::Debug for Context {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.pad("Context { .. }")
     }
 }
