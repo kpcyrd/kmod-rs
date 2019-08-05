@@ -7,13 +7,14 @@ fn main() {
     let ctx = kmod::Context::new().expect("kmod ctx failed");
 
     for module in ctx.modules_loaded().unwrap() {
-        let name = module.name();
+        let name = module.name().to_string_lossy();
         let refcount = module.refcount();
         let size = module.size();
 
-        let holders: Vec<_> = module.holders()
-                                .map(|x| x.name().to_owned())
-                                .collect();
+        let holders: Vec<_> = module
+            .holders()
+            .map(|x| x.name().to_string_lossy().into_owned())
+            .collect();
 
         println!("{:<19} {:8}  {} {:?}", name, size, refcount, holders);
     }
