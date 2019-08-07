@@ -1,9 +1,10 @@
-extern crate kmod;
-#[macro_use] extern crate log;
-extern crate env_logger;
+use kmod;
 
-use std::fs;
+use log::info;
+use env_logger;
+
 use std::env;
+use std::fs;
 
 fn main() {
     env_logger::init();

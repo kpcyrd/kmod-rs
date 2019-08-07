@@ -1,5 +1,5 @@
-extern crate kmod;
-extern crate env_logger;
+use env_logger;
+use kmod;
 
 fn main() {
     env_logger::init();
