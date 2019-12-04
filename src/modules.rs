@@ -5,7 +5,7 @@ use errno;
 use kmod_sys::{self, kmod_list, kmod_module};
 use log::trace;
 
-use crate::errors::{ErrorKind, Result};
+use crate::errors::{Error, ErrorKind, Result};
 
 /// Wrapper around a kmod_module
 pub struct Module {
@@ -23,16 +23,15 @@ impl Module {
     #[inline]
     pub(crate) fn new(module: *mut kmod_module) -> Module {
         trace!("creating kmod_module: {:?}", module);
-        Module {
-            inner: module,
-        }
+        Module { inner: module }
     }
 
     /// Get the name of the module
     #[inline]
     pub fn name(&self) -> &str {
         let name = unsafe { kmod_sys::kmod_module_get_name(self.inner).as_ref() };
-        name.and_then(|ptr| unsafe { CStr::from_ptr(ptr) }.to_str().ok()).unwrap()
+        name.and_then(|ptr| unsafe { CStr::from_ptr(ptr) }.to_str().ok())
+            .unwrap()
     }
 
     /// Get the size of the module
@@ -68,12 +67,29 @@ impl Module {
         Some(path.and_then(|ptr| unsafe { CStr::from_ptr(ptr) }.to_str().ok())?)
     }
 
-
     /// Get module options
     #[inline]
     pub fn options(&self) -> Option<&str> {
         let options = unsafe { kmod_sys::kmod_module_get_options(self.inner).as_ref() };
         Some(options.and_then(|ptr| unsafe { CStr::from_ptr(ptr) }.to_str().ok())?)
+    }
+
+    /// Get module info
+    #[inline]
+    pub fn info(&self) -> std::result::Result<Info, Error> {
+        let mut list_p = std::ptr::null_mut();
+        let list_pp = &mut list_p as *mut *mut kmod_sys::kmod_list;
+        let ret = unsafe { kmod_sys::kmod_module_get_info(self.inner, list_pp) };
+        // kmod_module_get_info returns positive non-zero codes on success
+        // it's documented incorrectly in libkmod/libkmod-module.c
+        if ret < 0 {
+            Err(ErrorKind::Errno(errno::errno()).into())
+        } else {
+            Ok(Info {
+                _module: &self,
+                inner: list_p,
+            })
+        }
     }
 
     /// Insert the module into the kernel
@@ -155,3 +171,34 @@ impl fmt::Debug for ModuleIterator {
     }
 }
 
+pub struct Info<'i> {
+    _module: &'i Module,
+    inner: *mut kmod_sys::kmod_list,
+}
+
+impl<'i> Drop for Info<'i> {
+    fn drop(&mut self) {
+        unsafe { kmod_sys::kmod_module_info_free_list(self.inner) }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::Context;
+    #[test]
+    fn info() {
+        let ctx = Context::new().expect("kmod ctx failed");
+
+        for module in ctx.modules_loaded().unwrap() {
+            let name = module.name();
+            let refcount = module.refcount();
+            let size = module.size();
+
+            let holders: Vec<_> = module.holders().map(|x| x.name().to_owned()).collect();
+            println!("{:<19} {:8}  {} {:?}", name, size, refcount, holders);
+
+            let info = module.info().unwrap();
+        }
+    }
+}
