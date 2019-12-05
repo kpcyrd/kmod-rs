@@ -25,6 +25,7 @@ pub use ctx::*;
 pub use errors::{Error, ErrorKind, Result};
 pub use modules::*;
 pub use errno::Errno;
+pub use info::Info;
 
 mod errors {
     use std;
@@ -48,6 +49,7 @@ mod errors {
 
 mod ctx;
 mod modules;
+mod info;
 
 #[cfg(test)]
 mod tests {
