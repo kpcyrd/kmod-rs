@@ -87,7 +87,8 @@ impl Module {
         } else {
             Ok(Info {
                 _module: &self,
-                inner: list_p,
+                list: list_p,
+                iter: list_p,
             })
         }
     }
@@ -173,12 +174,32 @@ impl fmt::Debug for ModuleIterator {
 
 pub struct Info<'i> {
     _module: &'i Module,
-    inner: *mut kmod_sys::kmod_list,
+    list: *mut kmod_sys::kmod_list,
+    iter: *mut kmod_sys::kmod_list,
 }
 
 impl<'i> Drop for Info<'i> {
     fn drop(&mut self) {
-        unsafe { kmod_sys::kmod_module_info_free_list(self.inner) }
+        unsafe { kmod_sys::kmod_module_info_free_list(self.list) }
+    }
+}
+
+impl<'i> Iterator for Info<'i> {
+    type Item = (&'i std::ffi::CStr, &'i std::ffi::CStr);
+
+    #[inline]
+    fn next(&mut self) -> Option<Self::Item> {
+        trace!("kmod_list->next: {:?}", self.iter);
+        self.iter = unsafe { kmod_sys::kmod_list_next(self.list, self.iter) };
+        if !self.iter.is_null() {
+            let key = unsafe { kmod_sys::kmod_module_info_get_key(self.iter) };
+            let value = unsafe { kmod_sys::kmod_module_info_get_value(self.iter) };
+            let key = unsafe { CStr::from_ptr(key) };
+            let value = unsafe { CStr::from_ptr(value) };
+            Some((key, value))
+        } else {
+            None
+        }
     }
 }
 
@@ -199,6 +220,9 @@ mod tests {
             println!("{:<19} {:8}  {} {:?}", name, size, refcount, holders);
 
             let info = module.info().unwrap();
+            for i in info {
+                println!("{:?}: {:?}", i.0, i.1);
+            }
         }
     }
 }
