@@ -22,9 +22,9 @@
 //! ```
 
 pub use ctx::*;
+pub use errno::Errno;
 pub use errors::{Error, ErrorKind, Result};
 pub use modules::*;
-pub use errno::Errno;
 
 mod errors {
     use std;
@@ -62,9 +62,7 @@ mod tests {
             let refcount = module.refcount();
             let size = module.size();
 
-            let holders: Vec<_> = module.holders()
-                                    .map(|x| x.name().to_owned())
-                                    .collect();
+            let holders: Vec<_> = module.holders().map(|x| x.name().to_owned()).collect();
 
             println!("{:<19} {:8}  {} {:?}", name, size, refcount, holders);
         }

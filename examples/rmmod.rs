@@ -1,7 +1,7 @@
 use kmod;
 
-use log::info;
 use env_logger;
+use log::info;
 
 use std::env;
 use std::fs;
@@ -14,8 +14,12 @@ fn main() {
     let filename = env::args().nth(1).expect("missing argument");
 
     let module = match fs::metadata(&filename) {
-        Ok(_) => ctx.module_new_from_path(&filename).expect("new_from_path failed"),
-        Err(_) => ctx.module_new_from_name(&filename).expect("new_from_name failed"),
+        Ok(_) => ctx
+            .module_new_from_path(&filename)
+            .expect("new_from_path failed"),
+        Err(_) => ctx
+            .module_new_from_name(&filename)
+            .expect("new_from_name failed"),
     };
 
     info!("got module: {:?}", module.name());

@@ -23,16 +23,15 @@ impl Module {
     #[inline]
     pub(crate) fn new(module: *mut kmod_module) -> Module {
         trace!("creating kmod_module: {:?}", module);
-        Module {
-            inner: module,
-        }
+        Module { inner: module }
     }
 
     /// Get the name of the module
     #[inline]
     pub fn name(&self) -> &str {
         let name = unsafe { kmod_sys::kmod_module_get_name(self.inner).as_ref() };
-        name.and_then(|ptr| unsafe { CStr::from_ptr(ptr) }.to_str().ok()).unwrap()
+        name.and_then(|ptr| unsafe { CStr::from_ptr(ptr) }.to_str().ok())
+            .unwrap()
     }
 
     /// Get the size of the module
@@ -67,7 +66,6 @@ impl Module {
         let path = unsafe { kmod_sys::kmod_module_get_path(self.inner).as_ref() };
         Some(path.and_then(|ptr| unsafe { CStr::from_ptr(ptr) }.to_str().ok())?)
     }
-
 
     /// Get module options
     #[inline]
@@ -154,4 +152,3 @@ impl fmt::Debug for ModuleIterator {
         f.pad("ModuleIterator { .. }")
     }
 }
-

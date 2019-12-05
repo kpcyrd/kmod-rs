@@ -38,9 +38,7 @@ impl Context {
             Err("kmod_new failed".into())
         } else {
             trace!("creating kmod: {:?}", ctx);
-            Ok(Context {
-                ctx,
-            })
+            Ok(Context { ctx })
         }
     }
 
@@ -70,7 +68,8 @@ impl Context {
         use std::os::unix::ffi::OsStrExt;
         let mut list = ptr::null::<kmod_sys::kmod_list>() as *mut kmod_sys::kmod_list;
         let alias = CString::new(alias.as_bytes())?;
-        let ret = unsafe { kmod_sys::kmod_module_new_from_lookup(self.ctx, alias.as_ptr(), &mut list) };
+        let ret =
+            unsafe { kmod_sys::kmod_module_new_from_lookup(self.ctx, alias.as_ptr(), &mut list) };
 
         if ret < 0 {
             Err(ErrorKind::Errno(errno::errno()).into())
@@ -91,7 +90,9 @@ impl Context {
         let mut module = ptr::null::<kmod_sys::kmod_module>() as *mut kmod_sys::kmod_module;
 
         let filename = CString::new(filename)?;
-        let ret = unsafe { kmod_sys::kmod_module_new_from_path(self.ctx, filename.as_ptr(), &mut module) };
+        let ret = unsafe {
+            kmod_sys::kmod_module_new_from_path(self.ctx, filename.as_ptr(), &mut module)
+        };
 
         if ret < 0 {
             Err(ErrorKind::Errno(errno::errno()).into())
@@ -111,7 +112,8 @@ impl Context {
         let mut module = ptr::null::<kmod_sys::kmod_module>() as *mut kmod_sys::kmod_module;
 
         let name = CString::new(name)?;
-        let ret = unsafe { kmod_sys::kmod_module_new_from_name(self.ctx, name.as_ptr(), &mut module) };
+        let ret =
+            unsafe { kmod_sys::kmod_module_new_from_name(self.ctx, name.as_ptr(), &mut module) };
 
         if ret < 0 {
             Err(ErrorKind::Errno(errno::errno()).into())
