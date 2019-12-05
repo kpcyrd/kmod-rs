@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::ffi::{CStr, CString};
 use std::fmt;
 
@@ -203,6 +204,17 @@ impl<'i> Iterator for Info<'i> {
     }
 }
 
+impl<'i> Info<'i> {
+    fn to_map(self) -> HashMap<String, Vec<String>> {
+        let mut result = HashMap::new();
+        for (k, v) in self {
+            let e = result.entry(k).or_insert(Vec::new());
+            e.push(v);
+        }
+        result
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -223,6 +235,23 @@ mod tests {
             for i in info {
                 println!("{}: {}", i.0, i.1);
             }
+        }
+    }
+
+    #[test]
+    fn info_map() {
+        let ctx = Context::new().expect("kmod ctx failed");
+
+        for module in ctx.modules_loaded().unwrap() {
+            let name = module.name();
+            let refcount = module.refcount();
+            let size = module.size();
+
+            let holders: Vec<_> = module.holders().map(|x| x.name().to_owned()).collect();
+            println!("{:<19} {:8}  {} {:?}", name, size, refcount, holders);
+
+            let info = module.info().unwrap().to_map();
+            println!("{:?}", info);
         }
     }
 }
