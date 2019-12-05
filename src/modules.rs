@@ -185,7 +185,7 @@ impl<'i> Drop for Info<'i> {
 }
 
 impl<'i> Iterator for Info<'i> {
-    type Item = (&'i std::ffi::CStr, &'i std::ffi::CStr);
+    type Item = (String, String);
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
@@ -194,8 +194,8 @@ impl<'i> Iterator for Info<'i> {
         if !self.iter.is_null() {
             let key = unsafe { kmod_sys::kmod_module_info_get_key(self.iter) };
             let value = unsafe { kmod_sys::kmod_module_info_get_value(self.iter) };
-            let key = unsafe { CStr::from_ptr(key) };
-            let value = unsafe { CStr::from_ptr(value) };
+            let key = unsafe { CStr::from_ptr(key) }.to_string_lossy().into_owned();
+            let value = unsafe { CStr::from_ptr(value) }.to_string_lossy().into_owned();
             Some((key, value))
         } else {
             None
@@ -221,7 +221,7 @@ mod tests {
 
             let info = module.info().unwrap();
             for i in info {
-                println!("{:?}: {:?}", i.0, i.1);
+                println!("{}: {}", i.0, i.1);
             }
         }
     }
