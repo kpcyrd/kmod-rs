@@ -195,8 +195,12 @@ impl<'i> Iterator for Info<'i> {
         if !self.iter.is_null() {
             let key = unsafe { kmod_sys::kmod_module_info_get_key(self.iter) };
             let value = unsafe { kmod_sys::kmod_module_info_get_value(self.iter) };
-            let key = unsafe { CStr::from_ptr(key) }.to_string_lossy().into_owned();
-            let value = unsafe { CStr::from_ptr(value) }.to_string_lossy().into_owned();
+            let key = unsafe { CStr::from_ptr(key) }
+                .to_string_lossy()
+                .into_owned();
+            let value = unsafe { CStr::from_ptr(value) }
+                .to_string_lossy()
+                .into_owned();
             Some((key, value))
         } else {
             None
