@@ -1,5 +1,6 @@
-use std::ffi::{CStr, CString};
+use std::ffi::{CStr, CString, OsStr};
 use std::fmt;
+use std::os::unix::ffi::OsStrExt;
 
 use errno;
 use kmod_sys::{self, kmod_list, kmod_module};
@@ -30,9 +31,15 @@ impl Module {
 
     /// Get the name of the module
     #[inline]
-    pub fn name(&self) -> &str {
-        let name = unsafe { kmod_sys::kmod_module_get_name(self.inner).as_ref() };
-        name.and_then(|ptr| unsafe { CStr::from_ptr(ptr) }.to_str().ok()).unwrap()
+    pub fn name(&self) -> &OsStr {
+        unsafe {
+            kmod_sys::kmod_module_get_name(self.inner)
+                .as_ref()
+                .map(|ptr| CStr::from_ptr(ptr))
+        }
+        .map(CStr::to_bytes)
+        .map(OsStr::from_bytes)
+        .unwrap() // Don't account for NULL as libkmod states that name is always available
     }
 
     /// Get the size of the module
@@ -63,17 +70,26 @@ impl Module {
 
     /// Get module path
     #[inline]
-    pub fn path(&self) -> Option<&str> {
-        let path = unsafe { kmod_sys::kmod_module_get_path(self.inner).as_ref() };
-        Some(path.and_then(|ptr| unsafe { CStr::from_ptr(ptr) }.to_str().ok())?)
+    pub fn path(&self) -> Option<&OsStr> {
+        unsafe {
+            kmod_sys::kmod_module_get_path(self.inner)
+                .as_ref()
+                .map(|ptr| CStr::from_ptr(ptr))
+        }
+        .map(CStr::to_bytes)
+        .map(OsStr::from_bytes)
     }
-
 
     /// Get module options
     #[inline]
-    pub fn options(&self) -> Option<&str> {
-        let options = unsafe { kmod_sys::kmod_module_get_options(self.inner).as_ref() };
-        Some(options.and_then(|ptr| unsafe { CStr::from_ptr(ptr) }.to_str().ok())?)
+    pub fn options(&self) -> Option<&OsStr> {
+        unsafe {
+            kmod_sys::kmod_module_get_options(self.inner)
+                .as_ref()
+                .map(|ptr| CStr::from_ptr(ptr))
+                .map(CStr::to_bytes)
+                .map(OsStr::from_bytes)
+        }
     }
 
     /// Insert the module into the kernel
