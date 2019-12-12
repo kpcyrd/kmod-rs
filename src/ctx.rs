@@ -1,4 +1,4 @@
-use std::ffi::{CString, OsStr};
+use std::ffi::{CStr, CString, OsStr, OsString};
 use std::{fmt, ptr};
 
 use errno;
@@ -132,19 +132,19 @@ impl Context {
         }
     }
 
-    /*
     /// Get the directory where kernel modules are stored
     ///
     /// ```
     /// let ctx = kmod::Context::new().unwrap();
     /// let dirname = ctx.dirname();
     /// ```
-    pub fn dirname(&self) -> String {
+    pub fn dirname(&self) -> OsString {
+        use std::os::unix::ffi::OsStringExt;
+
         let dirname = unsafe { kmod_sys::kmod_get_dirname(self.ctx) };
         let dirname = unsafe { CStr::from_ptr(dirname) };
-        dirname.to_string_lossy().into_owned()
+        OsString::from_vec(dirname.to_bytes().to_vec())
     }
-    */
 }
 
 impl fmt::Debug for Context {
