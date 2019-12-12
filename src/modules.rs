@@ -68,6 +68,35 @@ impl Module {
         ModuleIterator::new(dependencies)
     }
 
+    /// Get this modules soft dependencies
+    #[inline]
+    pub fn soft_dependencies(&self) -> Result<(ModuleIterator, ModuleIterator)> {
+        let mut pre: *mut kmod_list = std::ptr::null_mut();
+        let mut post: *mut kmod_list = std::ptr::null_mut();
+
+        let ret = unsafe { kmod_sys::kmod_module_get_softdeps(self.inner, &mut pre, &mut post) };
+
+        if ret < 0 {
+            Err(ErrorKind::Errno(errno::errno()).into())
+        } else {
+            Ok((ModuleIterator::new(pre), ModuleIterator::new(post)))
+        }
+    }
+
+    /// Get this modules dependencies
+    #[inline]
+    pub fn dependency_symbols(&self) -> Result<SymbolIterator> {
+        let mut dependencies: *mut kmod_list = std::ptr::null_mut();
+
+        let ret =
+            unsafe { kmod_sys::kmod_module_get_dependency_symbols(self.inner, &mut dependencies) };
+        if ret < 0 {
+            Err(ErrorKind::Errno(errno::errno()).into())
+        } else {
+            Ok(SymbolIterator::new(dependencies))
+        }
+    }
+
     /// Get module path
     #[inline]
     pub fn path(&self) -> Option<&OsStr> {
@@ -171,3 +200,54 @@ impl fmt::Debug for ModuleIterator {
     }
 }
 
+// Iterator over a kmod_list of Symbols
+pub struct SymbolIterator {
+    list: *mut kmod_list,
+    iter: *mut kmod_list,
+}
+
+impl Drop for SymbolIterator {
+    fn drop(&mut self) {
+        trace!("dropping kmod_list: {:?}", self.list);
+        unsafe { kmod_sys::kmod_module_symbols_free_list(self.list) };
+    }
+}
+
+impl SymbolIterator {
+    #[inline]
+    pub(crate) fn new(list: *mut kmod_list) -> SymbolIterator {
+        trace!("creating kmod_list: {:?}", list);
+        SymbolIterator { list, iter: list }
+    }
+}
+
+impl Iterator for SymbolIterator {
+    type Item = String;
+
+    #[inline]
+    fn next(&mut self) -> Option<Self::Item> {
+        trace!("kmod_list->next: {:?}", self.iter);
+
+        if self.iter.is_null() {
+            return None;
+        }
+
+        let symbol = unsafe { kmod_sys::kmod_module_dependency_symbol_get_symbol(self.iter) };
+        let new_iter = unsafe { kmod_sys::kmod_list_next(self.list, self.iter) };
+        self.iter = new_iter;
+
+        if symbol.is_null() {
+            panic!("Empty symbol");
+        }
+
+        let symbol = unsafe { CStr::from_ptr(symbol) };
+
+        Some(symbol.to_string_lossy().into_owned())
+    }
+}
+
+impl fmt::Debug for SymbolIterator {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.pad("SymbolIterator { .. }")
+    }
+}
