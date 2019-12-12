@@ -65,6 +65,17 @@ impl Context {
         }
     }
 
+    /// Create a module struct by looking up a name or alias.
+    ///
+    /// ```
+    /// # fn main() { foo(); }
+    /// # fn foo() -> Result<(), Box<std::error::Error>> {
+    /// use std::ffi::{OsStr, OsString};
+    /// let ctx = kmod::Context::new()?;
+    /// let module = ctx.module_new_from_lookup(&OsString::from("vfat"))?;
+    /// # Ok(())
+    /// # }
+    /// ```
     #[inline]
     pub fn module_new_from_lookup(&self, alias: &OsStr) -> Result<ModuleIterator> {
         use std::os::unix::ffi::OsStrExt;
