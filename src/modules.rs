@@ -31,7 +31,7 @@ impl Module {
 
     /// Get the name of the module
     #[inline]
-    pub fn name(&self) -> &OsStr {
+    pub fn name(&self) -> Option<&OsStr> {
         unsafe {
             kmod_sys::kmod_module_get_name(self.inner)
                 .as_ref()
@@ -39,7 +39,6 @@ impl Module {
         }
         .map(CStr::to_bytes)
         .map(OsStr::from_bytes)
-        .unwrap() // Don't account for NULL as libkmod states that name is always available
     }
 
     /// Get the size of the module

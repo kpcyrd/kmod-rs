@@ -8,12 +8,12 @@
 //!
 //!     // get a kmod_list of all loaded modules
 //!     for module in ctx.modules_loaded()? {
-//!         let name = module.name().to_string_lossy();
+//!         let name = module.name().unwrap_or_default().to_string_lossy();
 //!         let refcount = module.refcount();
 //!         let size = module.size();
 //!
 //!         let holders: Vec<_> = module.holders()
-//!             .map(|x| x.name().to_string_lossy().into_owned())
+//!             .map(|x| x.name().unwrap_or_default().to_string_lossy().into_owned())
 //!             .collect();
 //!
 //!         println!("{:<19} {:8}  {} {:?}", name, size, refcount, holders);
@@ -59,13 +59,13 @@ mod tests {
         let ctx = Context::new().unwrap();
 
         for module in ctx.modules_loaded().unwrap() {
-            let name = module.name().to_string_lossy();
+            let name = module.name().unwrap_or_default().to_string_lossy();
             let refcount = module.refcount();
             let size = module.size();
 
             let holders: Vec<_> = module
                 .holders()
-                .map(|x| x.name().to_string_lossy().into_owned())
+                .map(|x| x.name().unwrap_or_default().to_string_lossy().into_owned())
                 .collect();
 
             println!("{:<19} {:8}  {} {:?}", name, size, refcount, holders);
@@ -80,5 +80,16 @@ mod tests {
             .unwrap();
         println!("name: {:?}", m.name());
         println!("path: {:?}", m.path());
+    }
+
+    #[test]
+    fn module_name_none() {
+        use std::ffi::OsString;
+        let ctx = Context::new().unwrap();
+         for m in ctx
+            .module_new_from_lookup(OsString::from("dgfhdfjkghdl").as_ref())
+            .unwrap() {
+             assert!(m.name().is_none());
+         }
     }
 }
