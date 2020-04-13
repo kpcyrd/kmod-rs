@@ -23,6 +23,7 @@ impl Drop for Module {
 impl Module {
     #[inline]
     pub(crate) fn new(module: *mut kmod_module) -> Module {
+        assert!(!module.is_null());
         trace!("creating kmod_module: {:?}", module);
         Module {
             inner: module,
