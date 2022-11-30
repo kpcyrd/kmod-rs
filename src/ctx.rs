@@ -1,4 +1,6 @@
 use std::ffi::{CStr, CString, OsStr, OsString};
+use std::os::unix::ffi::OsStrExt;
+use std::path::Path;
 use std::{fmt, ptr};
 
 use errno;
@@ -33,6 +35,27 @@ impl Context {
     #[inline]
     pub fn new() -> Result<Context> {
         let ctx = unsafe { kmod_sys::kmod_new(ptr::null(), ptr::null()) };
+        if ctx.is_null() {
+            Err("kmod_new failed".into())
+        } else {
+            trace!("creating kmod: {:?}", ctx);
+            Ok(Context {
+                ctx,
+            })
+        }
+    }
+
+    /// Create a new kmod context with given directory to search for kernel modules.
+    ///
+    /// ```
+    /// use std::path::Path;
+    /// let ctx = kmod::Context::new_with_dirname(&Path::new("/lib/modules/6.0.9")).unwrap();
+    /// ```
+    #[inline]
+    pub fn new_with_dirname(dirname : &Path) -> Result<Context> {
+        let dirname = CString::new(dirname.as_os_str().as_bytes())?;
+
+        let ctx = unsafe { kmod_sys::kmod_new(dirname.as_ptr(), ptr::null()) };
 
         if ctx.is_null() {
             Err("kmod_new failed".into())
@@ -78,7 +101,6 @@ impl Context {
     /// ```
     #[inline]
     pub fn module_new_from_lookup(&self, alias: &OsStr) -> Result<ModuleIterator> {
-        use std::os::unix::ffi::OsStrExt;
         let mut list = ptr::null::<kmod_sys::kmod_list>() as *mut kmod_sys::kmod_list;
         let alias = CString::new(alias.as_bytes())?;
         let ret = unsafe { kmod_sys::kmod_module_new_from_lookup(self.ctx, alias.as_ptr(), &mut list) };
