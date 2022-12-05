@@ -21,4 +21,4 @@ errno = "0.2"
 kmod-sys = { version = "0.1.2", path = "kmod-sys" }
 
 [dev-dependencies]
-env_logger = "0.6"
+env_logger = "0.10"
