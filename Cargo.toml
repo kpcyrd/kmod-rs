@@ -1,6 +1,6 @@
 [package]
 name = "kmod"
-version = "0.4.0"
+version = "0.5.0"
 description = "Bindings to libkmod to manage linux kernel modules"
 authors = ["kpcyrd <git@rxv.cc>"]
 license = "MIT/Apache-2.0"
@@ -14,7 +14,7 @@ edition = "2021"
 [dependencies]
 log = "0.4"
 errno = "0.2"
-kmod-sys = { version = "0.1.2", path = "kmod-sys" }
+kmod-sys = { version = "0.2.0", path = "kmod-sys" }
 thiserror = "1.0.37"
 
 [dev-dependencies]
