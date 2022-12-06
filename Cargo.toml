@@ -7,18 +7,16 @@ license = "MIT/Apache-2.0"
 repository = "https://github.com/kpcyrd/kmod-rs"
 categories = ["api-bindings"]
 readme = "README.md"
-edition = "2018"
-
-[badges]
-travis-ci = { repository = "kpcyrd/kmod-rs" }
+edition = "2021"
 
 [workspace]
 
 [dependencies]
-error-chain = "0.12"
 log = "0.4"
 errno = "0.2"
 kmod-sys = { version = "0.1.2", path = "kmod-sys" }
+thiserror = "1.0.37"
 
 [dev-dependencies]
-env_logger = "0.6"
+anyhow = "1.0.66"
+env_logger = "0.10"

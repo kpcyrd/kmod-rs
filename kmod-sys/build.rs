@@ -3,7 +3,7 @@ extern crate bindgen;
 use std::env;
 use std::path::PathBuf;
 
-fn genbindings(path: &str) -> Result<bindgen::Bindings, ()> {
+fn genbindings(path: &str) -> Result<bindgen::Bindings, bindgen::BindgenError> {
     // The bindgen::Builder is the main entry point
     // to bindgen, and lets you build up options for
     // the resulting bindings.

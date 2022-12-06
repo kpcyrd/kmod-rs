@@ -1,24 +1,24 @@
-use kmod;
-
-use log::info;
-use env_logger;
-
+use anyhow::Context;
+use kmod::errors::*;
 use std::env;
 use std::fs;
 
-fn main() {
+fn main() -> anyhow::Result<()> {
     env_logger::init();
 
-    let ctx = kmod::Context::new().expect("kmod ctx failed");
+    let ctx = kmod::Context::new().context("kmod ctx failed")?;
+    let filename = env::args().nth(1).context("missing argument")?;
 
-    let filename = env::args().nth(1).expect("missing argument");
-
-    let module = match fs::metadata(&filename) {
-        Ok(_) => ctx.module_new_from_path(&filename).expect("new_from_path failed"),
-        Err(_) => ctx.module_new_from_name(&filename).expect("new_from_name failed"),
+    let module = if fs::metadata(&filename).is_ok() {
+        // it's a file
+        ctx.module_new_from_path(&filename)?
+    } else {
+        // it's probably a name
+        ctx.module_new_from_name(&filename)?
     };
 
     info!("got module: {:?}", module.name());
+    module.remove_module(0)?;
 
-    module.remove_module(0).expect("remove_module failed");
+    Ok(())
 }

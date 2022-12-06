@@ -2,7 +2,7 @@
 //!
 //! # Example
 //! ```
-//! fn main() -> Result<(), Box<std::error::Error>>{
+//! fn main() -> anyhow::Result<()> {
 //!     // create a new kmod context
 //!     let ctx = kmod::Context::new()?;
 //!
@@ -22,33 +22,14 @@
 //! }
 //! ```
 
+pub mod ctx;
+pub mod errors;
+pub mod modules;
+
 pub use ctx::*;
-pub use errors::{Error, ErrorKind, Result};
-pub use modules::*;
 pub use errno::Errno;
-
-mod errors {
-    use std;
-
-    use errno::Errno;
-
-    use error_chain::error_chain;
-
-    error_chain! {
-        errors {
-            Errno(err: Errno) {
-                description("got error")
-                display("{}", err)
-            }
-        }
-        foreign_links {
-            NulError(std::ffi::NulError);
-        }
-    }
-}
-
-mod ctx;
-mod modules;
+pub use errors::*;
+pub use modules::*;
 
 #[cfg(test)]
 mod tests {

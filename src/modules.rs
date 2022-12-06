@@ -1,12 +1,8 @@
+use crate::errors::*;
+use kmod_sys::{self, kmod_list, kmod_module};
 use std::ffi::{CStr, CString, OsStr};
 use std::fmt;
 use std::os::unix::ffi::OsStrExt;
-
-use errno;
-use kmod_sys::{self, kmod_list, kmod_module};
-use log::trace;
-
-use crate::errors::{ErrorKind, Result};
 
 /// Wrapper around a kmod_module
 pub struct Module {
@@ -24,9 +20,7 @@ impl Module {
     #[inline]
     pub(crate) fn new(module: *mut kmod_module) -> Module {
         trace!("creating kmod_module: {:?}", module);
-        Module {
-            inner: module,
-        }
+        Module { inner: module }
     }
 
     /// Get the name of the module
@@ -101,7 +95,11 @@ impl Module {
 
         let ret = unsafe { kmod_sys::kmod_module_insert_module(self.inner, flags, opts.as_ptr()) };
         if ret < 0 {
-            Err(ErrorKind::Errno(errno::errno()).into())
+            if errno::errno() == errno::Errno(0) {
+                Err(Error::InsertModuleUnknown)
+            } else {
+                Err(Error::InsertModule(errno::errno()))
+            }
         } else {
             Ok(())
         }
@@ -112,7 +110,7 @@ impl Module {
     pub fn remove_module(&self, flags: u32) -> Result<()> {
         let ret = unsafe { kmod_sys::kmod_module_remove_module(self.inner, flags) };
         if ret < 0 {
-            Err(ErrorKind::Errno(errno::errno()).into())
+            Err(Error::RemoveModule(errno::errno()))
         } else {
             Ok(())
         }
@@ -142,10 +140,7 @@ impl ModuleIterator {
     #[inline]
     pub(crate) fn new(list: *mut kmod_list) -> ModuleIterator {
         trace!("creating kmod_list: {:?}", list);
-        ModuleIterator {
-            list: list,
-            iter: list,
-        }
+        ModuleIterator { list, iter: list }
     }
 }
 
@@ -170,4 +165,3 @@ impl fmt::Debug for ModuleIterator {
         f.pad("ModuleIterator { .. }")
     }
 }
-
