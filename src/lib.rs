@@ -2,7 +2,7 @@
 //!
 //! # Example
 //! ```
-//! fn main() -> Result<(), Box<std::error::Error>>{
+//! fn main() -> anyhow::Result<()> {
 //!     // create a new kmod context
 //!     let ctx = kmod::Context::new()?;
 //!

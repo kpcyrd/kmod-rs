@@ -82,7 +82,7 @@ impl Context {
     ///
     /// ```
     /// # fn main() { foo(); }
-    /// # fn foo() -> Result<(), Box<std::error::Error>> {
+    /// # fn foo() -> anyhow::Result<()> {
     /// use std::ffi::{OsStr, OsString};
     /// let ctx = kmod::Context::new()?;
     /// let module = ctx.module_new_from_lookup(&OsString::from("vfat"))?;
