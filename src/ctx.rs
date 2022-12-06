@@ -1,14 +1,9 @@
+use crate::errors::*;
+use crate::modules::{Module, ModuleIterator};
 use std::ffi::{CStr, CString, OsStr, OsString};
 use std::os::unix::ffi::OsStrExt;
 use std::path::Path;
 use std::{fmt, ptr};
-
-use errno;
-use kmod_sys;
-use log::trace;
-
-use crate::errors::{ErrorKind, Result};
-use crate::modules::{Module, ModuleIterator};
 
 /// The kmod context
 ///
@@ -36,12 +31,10 @@ impl Context {
     pub fn new() -> Result<Context> {
         let ctx = unsafe { kmod_sys::kmod_new(ptr::null(), ptr::null()) };
         if ctx.is_null() {
-            Err("kmod_new failed".into())
+            Err(Error::NewCtx)
         } else {
             trace!("creating kmod: {:?}", ctx);
-            Ok(Context {
-                ctx,
-            })
+            Ok(Context { ctx })
         }
     }
 
@@ -51,19 +44,16 @@ impl Context {
     /// use std::path::Path;
     /// let ctx = kmod::Context::new_with_dirname(&Path::new("/lib/modules/6.0.9")).unwrap();
     /// ```
-    #[inline]
-    pub fn new_with_dirname(dirname : &Path) -> Result<Context> {
+    pub fn new_with_dirname(dirname: &Path) -> Result<Context> {
         let dirname = CString::new(dirname.as_os_str().as_bytes())?;
 
         let ctx = unsafe { kmod_sys::kmod_new(dirname.as_ptr(), ptr::null()) };
 
         if ctx.is_null() {
-            Err("kmod_new failed".into())
+            Err(Error::NewCtx)
         } else {
             trace!("creating kmod: {:?}", ctx);
-            Ok(Context {
-                ctx,
-            })
+            Ok(Context { ctx })
         }
     }
 
@@ -81,7 +71,7 @@ impl Context {
         let ret = unsafe { kmod_sys::kmod_module_new_from_loaded(self.ctx, &mut list) };
 
         if ret < 0 {
-            Err(ErrorKind::Errno(errno::errno()).into())
+            Err(Error::LoadedModules)
         } else {
             trace!("kmod_module_new_from_loaded: {:?}", list);
             Ok(ModuleIterator::new(list))
@@ -99,14 +89,14 @@ impl Context {
     /// # Ok(())
     /// # }
     /// ```
-    #[inline]
-    pub fn module_new_from_lookup(&self, alias: &OsStr) -> Result<ModuleIterator> {
+    pub fn module_new_from_lookup<S: AsRef<OsStr>>(&self, alias: S) -> Result<ModuleIterator> {
         let mut list = ptr::null::<kmod_sys::kmod_list>() as *mut kmod_sys::kmod_list;
-        let alias = CString::new(alias.as_bytes())?;
-        let ret = unsafe { kmod_sys::kmod_module_new_from_lookup(self.ctx, alias.as_ptr(), &mut list) };
+        let alias = CString::new(alias.as_ref().as_bytes())?;
+        let ret =
+            unsafe { kmod_sys::kmod_module_new_from_lookup(self.ctx, alias.as_ptr(), &mut list) };
 
         if ret < 0 {
-            Err(ErrorKind::Errno(errno::errno()).into())
+            Err(Error::ModuleFromLookup)
         } else {
             trace!("kmod_module_new_from_lookup: {:?}", list);
             Ok(ModuleIterator::new(list))
@@ -119,15 +109,16 @@ impl Context {
     /// let ctx = kmod::Context::new().unwrap();
     /// let module = ctx.module_new_from_path("foo.ko");
     /// ```
-    #[inline]
-    pub fn module_new_from_path(&self, filename: &str) -> Result<Module> {
+    pub fn module_new_from_path<S: AsRef<OsStr>>(&self, filename: S) -> Result<Module> {
         let mut module = ptr::null::<kmod_sys::kmod_module>() as *mut kmod_sys::kmod_module;
 
-        let filename = CString::new(filename)?;
-        let ret = unsafe { kmod_sys::kmod_module_new_from_path(self.ctx, filename.as_ptr(), &mut module) };
+        let filename = CString::new(filename.as_ref().as_bytes())?;
+        let ret = unsafe {
+            kmod_sys::kmod_module_new_from_path(self.ctx, filename.as_ptr(), &mut module)
+        };
 
         if ret < 0 {
-            Err(ErrorKind::Errno(errno::errno()).into())
+            Err(Error::ModuleFromPath(errno::errno()))
         } else {
             trace!("kmod_module_new_from_path: {:?}", module);
             Ok(Module::new(module))
@@ -144,10 +135,11 @@ impl Context {
         let mut module = ptr::null::<kmod_sys::kmod_module>() as *mut kmod_sys::kmod_module;
 
         let name = CString::new(name)?;
-        let ret = unsafe { kmod_sys::kmod_module_new_from_name(self.ctx, name.as_ptr(), &mut module) };
+        let ret =
+            unsafe { kmod_sys::kmod_module_new_from_name(self.ctx, name.as_ptr(), &mut module) };
 
         if ret < 0 {
-            Err(ErrorKind::Errno(errno::errno()).into())
+            Err(Error::ModuleFromName)
         } else {
             trace!("kmod_module_new_from_name: {:?}", module);
             Ok(Module::new(module))

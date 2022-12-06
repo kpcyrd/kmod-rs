@@ -7,9 +7,7 @@ links = "kmod"
 license = "MIT/Apache-2.0"
 repository = "https://github.com/kpcyrd/kmod-rs"
 categories = ["external-ffi-bindings"]
-
-[badges]
-travis-ci = { repository = "kpcyrd/kmod-rs" }
+edition = "2021"
 
 [dependencies]
 
