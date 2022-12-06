@@ -107,8 +107,7 @@ impl Module {
 
     /// Remove the module from the kernel
     #[inline]
-    pub fn remove_module(&self, mut flags: u32) -> Result<()> {
-        flags |= kmod_sys::kmod_remove_KMOD_REMOVE_NOLOG;
+    pub fn remove_module(&self, flags: u32) -> Result<()> {
         let ret = unsafe { kmod_sys::kmod_module_remove_module(self.inner, flags) };
         if ret < 0 {
             Err(Error::RemoveModule(errno::errno()))
